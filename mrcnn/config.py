@@ -67,7 +67,10 @@ class Config(object):
     FPN_CLASSIF_FC_LAYERS_SIZE = 1024
 
     # Size of the top-down layers used to build the feature pyramid
-    TOP_DOWN_PYRAMID_SIZE = 256
+    TOP_DOWN_PYRAMID_SIZE = 256 
+
+    # Size of the the final features map to be concantenated 
+    BOTTOM_UP_SIZE = 128
 
     # Number of classification classes (including background)
     NUM_CLASSES = 1  # Override in sub-classes

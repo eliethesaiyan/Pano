@@ -212,19 +212,6 @@ def resnet_graph(input_image, architecture, stage5=False, train_bn=True):
     print("finished building resnet")
     return [C1, C2, C3, C4, C5]
 
-#def upsampling_graph(features_maps):
-#    " Upsample features from pyramid graph"
-#    S1, S2, S3, S4 = features_maps 
-   
-#    S4 = KL.Conv2D(128, (1, 1), name='seg_conv1')(S4)
-
-#    P4 = KL.Add(name="fpn_p4add")([
-#            KL.UpSampling2D(size=(2, 2), name="fpn_p5upsampled")(P5),
-
-
-
-
-
 ############################################################
 #  Proposal Layer
 ############################################################
@@ -1915,10 +1902,10 @@ class MaskRCNN():
         # Returns a list of the last layers of each stage, 5 in total.
         # Don't create the thead (stage 5), so we pick the 4th item in the list.
         if callable(config.BACKBONE):
-            _, C2, C3, C4, C5 = config.BACKBONE(input_image, stage5=True,
+            C1, C2, C3, C4, C5 = config.BACKBONE(input_image, stage5=True,
                                                 train_bn=config.TRAIN_BN)
         else:
-            _, C2, C3, C4, C5 = resnet_graph(input_image, config.BACKBONE,
+            C1, C2, C3, C4, C5 = resnet_graph(input_image, config.BACKBONE,
                                              stage5=True, train_bn=config.TRAIN_BN)
         # Top-down Layers
         # TODO: add assert to varify feature map sizes match what's in config
