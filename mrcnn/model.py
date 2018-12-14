@@ -787,6 +787,25 @@ def refine_detections_graph(rois, probs, deltas, window, config):
     return detections
 
 
+#class SegmentationLayer(KE.Layer):
+#    """ takes features maps from resnet concatenates thems and returns
+#the final features
+#    """
+#    def __init__(self,num_filters=None, **kwargs):
+#        super().__init__()
+#        self.num_filters = num_filters
+#
+#
+#    def call(self, features_maps):
+#        map1, map2, map3, map4 = features_maps
+
+        
+
+
+    
+
+
+
 class DetectionLayer(KE.Layer):
     """Takes classified proposal boxes and their bounding box deltas and
     returns the final detection boxes.
@@ -1929,7 +1948,21 @@ class MaskRCNN():
         P6 = KL.MaxPooling2D(pool_size=(1, 1), strides=2, name="fpn_p6")(P5)
 
         # Note that P6 is used in RPN, but not in the classifier heads.
+
+
+
+
+        #############################SEGMENTATION DIRT HERE ##########################
+        S1 = KL.Conv2D(config.BOTTOM_UP_SIZE, (1, 1), padding="SAME", name="seg_C1")(C1) # 512
+        S2 = KL.Conv2D(config.BOTTOM_UP_SIZE, (1, 1), padding="SAME", name="seg_P2")(P2)#256
+        S3 = KL.Conv2D(config.BOTTOM_UP_SIZE, (1, 1), padding="SAME", name="seg_P3")(P3)#128
+        S4 = KL.Conv2D(config.BOTTOM_UP_SIZE, (1, 1), padding="SAME", name="seg_P4")(P4)#64
+        S2 = KL.UpSampling2D(size=(2, 2), name="seg_2upsampled")(S2)
+        S3 = KL.UpSampling2D(size=(4,4), name="seg_3upsampled")(S3)
+        S4 = KL.UpSampling2D(size=(8, 8), name="seg_4upsampled")(S4)
+        merged = KL.Add(name='merged')([S1,S2,S3,S4])
         rpn_feature_maps = [P2, P3, P4, P5, P6]
+        #seg_l = SegmentationLayer(nb_channels=config.BOTTOM_UP_SIZE,name="segmentation_l") ([C1,P2,P3,P4])
         mrcnn_feature_maps = [P2, P3, P4, P5]
 
         # Anchors
@@ -2028,10 +2061,10 @@ class MaskRCNN():
 
             # Model
             inputs = [input_image, input_image_meta,
-                      input_rpn_match, input_rpn_bbox, input_gt_class_ids, input_gt_boxes, input_gt_masks]
+                      input_rpn_match, input_rpn_bbox, input_gt_class_ids, input_gt_boxes, input_gt_masks,C1,P2,P3,P4]
             if not config.USE_RPN_ROIS:
                 inputs.append(input_rois)
-            outputs = [rpn_class_logits, rpn_class, rpn_bbox,
+            outputs = [merged, rpn_class_logits, rpn_class, rpn_bbox,
                        mrcnn_class_logits, mrcnn_class, mrcnn_bbox, mrcnn_mask,
                        rpn_rois, output_rois,
                        rpn_class_loss, rpn_bbox_loss, class_loss, bbox_loss, mask_loss]
@@ -2059,7 +2092,7 @@ class MaskRCNN():
                                               config.NUM_CLASSES,
                                               train_bn=config.TRAIN_BN)
 
-            model = KM.Model([input_image, input_image_meta, input_anchors],
+            model = KM.Model([merged, input_image, input_image_meta, input_anchors],
                              [detections, mrcnn_class, mrcnn_bbox,
                                  mrcnn_mask, rpn_rois, rpn_class, rpn_bbox],
                              name='mask_rcnn')
