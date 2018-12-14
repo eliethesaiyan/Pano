@@ -37,7 +37,8 @@ python2 scripts/panoptic2segmentation_coco_format.py   --input_json_file coco/an
 
 `pip install -r requirement.txt`
 
-5. run the following command to start training
+5. Run the following command to start training
 
-`PYTHONPATH=./ python samples/coco/coco2017.py train  --dataset=coco/ --model=imagenet # Python3
+`PYTHONPATH=./ python samples/coco/coco2017.py train  --dataset=coco/ --model=imagenet # Python3`
+
 
